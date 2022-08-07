@@ -73,4 +73,41 @@ public static class Noise
         }
         return noiseMap;
     }
+
+    public static float[,] GenerateNoiseMapMyVersion(int width, int length, float frequency, float amplitude, int octaves, float persistance)
+    {
+        float[,] noiseMap = new float[width, length];
+        float perlinValueNoLimit = 0;
+        float sumOfAmplitudes = amplitude;
+        float savedAmplitude = amplitude;
+        float savedFrequency = frequency;
+
+        if(frequency < 0)
+        {
+            frequency = 0.001f;
+        }
+
+        for(int x = 0; x < width; x++)
+        {
+            for(int y = 0; y < length; y++)
+            {
+                for(int i = 0; i < octaves; i++)
+                {
+                    float perlinValue = Mathf.PerlinNoise(x * frequency, y * frequency);
+                    perlinValueNoLimit += amplitude * perlinValue;
+
+                    amplitude *= persistance;
+                    sumOfAmplitudes += amplitude;
+                    frequency *= frequency;
+                }
+                // perlinValueNoLimit / SumOfAmplitudes makes it so it stays in the range of 0-1
+                noiseMap[x, y] = perlinValueNoLimit / sumOfAmplitudes;
+                perlinValueNoLimit = 0;
+                sumOfAmplitudes = amplitude;
+                amplitude = savedAmplitude;
+                frequency = savedFrequency;
+            }
+        }
+        return noiseMap;
+    }
 }

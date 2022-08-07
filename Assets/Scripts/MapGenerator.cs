@@ -6,7 +6,9 @@ public class MapGenerator : MonoBehaviour
 {
     public int mapWidth;
     public int mapLength;
-    public float noiseScale;
+    public float noiseFrequency;
+
+    public float amplitude;
 
     public int octaves;
     [Range(0, 1)]
@@ -21,7 +23,7 @@ public class MapGenerator : MonoBehaviour
     //Generates perlin noise map
     public void GenerateMap()
     {
-        float[,] mapGen = Noise.GenerateNoiseMap(mapWidth, mapLength, seed, noiseScale, octaves, persistance, lacunarity, offset);
+        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapWidth, mapLength, noiseFrequency, amplitude, octaves, persistance);
 
         MapDisplay mapDisplay = GetComponent<MapDisplay>();
         mapDisplay.DrawNoiseMap(mapGen);
