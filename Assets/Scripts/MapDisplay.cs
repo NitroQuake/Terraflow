@@ -7,23 +7,42 @@ public class MapDisplay : MonoBehaviour
     public Renderer textureRender;
 
     //Puts perlin noiseMap texture
-    public void DrawNoiseMap(float[,] noiseMap)
-    {
-        int width = noiseMap.GetLength(0);
-        int length = noiseMap.GetLength(1);
 
-        Texture2D texture2D = new Texture2D(width, length);
+    // Sets color based on values in the perlin noise map
+    public void BiomeLevel(float[,] levels)
+    {
+        int width = levels.GetLength(0);
+        int length = levels.GetLength(1);
 
         Color[] colors = new Color[width * length];
 
-        for(int x = 0; x < width; x++)
+        for (int x = 0; x < width; x++)
         {
-            for(int y = 0; y < length; y++)
+            for (int y = 0; y < length; y++)
             {
-                // Makes the 1D array have the same parameter as the 2D array
-                colors[x * length + y] = Color.Lerp(Color.black, Color.white, noiseMap[x, y]);
+                // colors[x * length + y] = Colors.lerp[Color.black, color.white, levels[x, y] changes it back to black and white
+                if (levels[x, y] < 0.4)
+                {
+                    colors[x * length + y] = Color.blue;
+                }
+                if (levels[x, y] > 0.4)
+                {
+                    colors[x * length + y] = Color.green;
+                }
             }
         }
+        DrawNoiseMap(colors, width, length);
+    }
+
+    // Creates and sets texture
+    public void DrawNoiseMap(Color[] colors, int width, int length)
+    {
+        Texture2D texture2D = new Texture2D(width, length);
+
+        //removes repeated color border outline of the texture
+        texture2D.filterMode = FilterMode.Point;
+        texture2D.wrapMode = TextureWrapMode.Clamp;
+
         texture2D.SetPixels(colors);
         texture2D.Apply();
 

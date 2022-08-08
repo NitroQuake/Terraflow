@@ -41,8 +41,8 @@ public static class Noise
 
                 for(int i = 0; i < octaves; i++)
                 {
-                    float sampleX = (x - halfWidth) / scale + octaveOffset[i].x;
-                    float sampleY = (y - halfLength) / scale + octaveOffset[i].y;
+                    float sampleX = (x - halfWidth) / scale * frequency + octaveOffset[i].x;
+                    float sampleY = (y - halfLength) / scale * frequency + octaveOffset[i].y;
 
                     //The * 2 - 1 makes it so there can be a value below 0
                     float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;
@@ -74,38 +74,58 @@ public static class Noise
         return noiseMap;
     }
 
-    public static float[,] GenerateNoiseMapMyVersion(int width, int length, float frequency, float amplitude, int octaves, float persistance)
+    public static float[,] GenerateNoiseMapMyVersion(int width, int length, int seed, float scale, float amplitude, int octaves, float persistance, float lacunarity, Vector2 offset, float power)
     {
+        System.Random prng = new System.Random(seed);
+        Vector2[] octaveOffset = new Vector2[octaves];
+
+        float halfWidth = width / 2f;
+        float halfLength = length / 2f;
+
+        // Generates a seed
+        for (int i = 0; i < octaves; i++)
+        {
+            float offsetX = prng.Next(-100000, 100000) + offset.x;
+            float offsetY = prng.Next(-100000, 100000) + offset.y;
+            octaveOffset[i] = new Vector2(offsetX, offsetY);
+        }
+
         float[,] noiseMap = new float[width, length];
         float perlinValueNoLimit = 0;
         float sumOfAmplitudes = amplitude;
         float savedAmplitude = amplitude;
-        float savedFrequency = frequency;
 
-        if(frequency < 0)
+        if(scale < 0)
         {
-            frequency = 0.001f;
+            scale = 0.001f;
         }
 
         for(int x = 0; x < width; x++)
         {
             for(int y = 0; y < length; y++)
             {
+                float frequency = 1;
+                // Octaves to create different perlin noise maps
                 for(int i = 0; i < octaves; i++)
                 {
-                    float perlinValue = Mathf.PerlinNoise(x * frequency, y * frequency);
+                    float sampleX = (x - halfWidth) / scale * frequency + octaveOffset[i].x;
+                    float sampleY = (y - halfLength) / scale * frequency + octaveOffset[i].y;
+
+                    float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
+                    // perlinValueNoLimit collects all the values from different perlin noise maps
                     perlinValueNoLimit += amplitude * perlinValue;
 
+                    // Decreases amplitude
                     amplitude *= persistance;
                     sumOfAmplitudes += amplitude;
-                    frequency *= frequency;
+                    // Increases frequency
+                    frequency *= lacunarity;
                 }
-                // perlinValueNoLimit / SumOfAmplitudes makes it so it stays in the range of 0-1
-                noiseMap[x, y] = perlinValueNoLimit / sumOfAmplitudes;
+                // perlinValueNoLimit / SumOfAmplitudes makes it so it stays in the range of 0-1 and adding a power creates steeper peeks if increased
+                noiseMap[x, y] = Mathf.Pow(perlinValueNoLimit / sumOfAmplitudes, power);
                 perlinValueNoLimit = 0;
-                sumOfAmplitudes = amplitude;
+                sumOfAmplitudes = savedAmplitude;
                 amplitude = savedAmplitude;
-                frequency = savedFrequency;
             }
         }
         return noiseMap;

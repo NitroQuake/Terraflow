@@ -6,27 +6,25 @@ public class MapGenerator : MonoBehaviour
 {
     public int mapWidth;
     public int mapLength;
-    public float noiseFrequency;
-
+    public float noiseScale;
     public float amplitude;
-
     public int octaves;
     [Range(0, 1)]
     public float persistance;
     public float lacunarity;
-
     public int seed;
     public Vector2 offset;
+    public float power;
 
     public bool autoUpdate;
 
     //Generates perlin noise map
     public void GenerateMap()
     {
-        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapWidth, mapLength, noiseFrequency, amplitude, octaves, persistance);
+        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapWidth, mapLength, seed, noiseScale, amplitude, octaves, persistance, lacunarity, offset, power);
 
         MapDisplay mapDisplay = GetComponent<MapDisplay>();
-        mapDisplay.DrawNoiseMap(mapGen);
+        mapDisplay.BiomeLevel(mapGen);
     }
 
     void OnValidate()
@@ -46,6 +44,10 @@ public class MapGenerator : MonoBehaviour
         if(octaves < 0)
         {
             octaves = 0;
+        }
+        if(power < 1)
+        {
+            power = 1;
         }
     }
 }
