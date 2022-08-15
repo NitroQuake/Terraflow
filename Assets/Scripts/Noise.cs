@@ -100,9 +100,9 @@ public static class Noise
             scale = 0.001f;
         }
 
-        for(int x = 0; x < width; x++)
+        for(int y = 0; y < length; y++)
         {
-            for(int y = 0; y < length; y++)
+            for(int x = 0; x < width; x++)
             {
                 float frequency = 1;
                 // Octaves to create different perlin noise maps

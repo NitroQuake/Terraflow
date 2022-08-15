@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
-    public int mapWidth;
-    public int mapLength;
+    public int mapSizeWL = 241;
+    [Range(1, 6)]
+    public int levelOfDetail;
     public float noiseScale;
     public float amplitude;
     public int octaves;
@@ -15,28 +16,23 @@ public class MapGenerator : MonoBehaviour
     public int seed;
     public Vector2 offset;
     public float power;
+    public float multipliar;
+    public AnimationCurve meshCurve;
 
     public bool autoUpdate;
 
     //Generates perlin noise map
     public void GenerateMap()
     {
-        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapWidth, mapLength, seed, noiseScale, amplitude, octaves, persistance, lacunarity, offset, power);
+        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapSizeWL, mapSizeWL, seed, noiseScale, amplitude, octaves, persistance, lacunarity, offset, power);
 
         MapDisplay mapDisplay = GetComponent<MapDisplay>();
         mapDisplay.BiomeLevel(mapGen);
+        mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapGen, multipliar, meshCurve, levelOfDetail));
     }
 
     void OnValidate()
     {
-        if(mapWidth < 1)
-        {
-            mapWidth = 1;
-        }
-        if(mapLength < 1)
-        {
-            mapLength = 1;
-        }
         if(lacunarity < 1)
         {
             lacunarity = 1;

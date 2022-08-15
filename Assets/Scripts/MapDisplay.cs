@@ -5,8 +5,9 @@ using UnityEngine;
 public class MapDisplay : MonoBehaviour
 {
     public Renderer textureRender;
-
-    //Puts perlin noiseMap texture
+    public MeshFilter meshFilter;
+    public MeshRenderer meshRenderer;
+    public bool meshRender;
 
     // Sets color based on values in the perlin noise map
     public void BiomeLevel(float[,] levels)
@@ -20,14 +21,41 @@ public class MapDisplay : MonoBehaviour
         {
             for (int y = 0; y < length; y++)
             {
-                // colors[x * length + y] = Colors.lerp[Color.black, color.white, levels[x, y] changes it back to black and white
-                if (levels[x, y] < 0.4)
+                // colors[x * length + y] = Color.Lerp(Color.black, Color.white, levels[x, y]); changes it back to black and white
+                // This is where regions are set based on height
+                if (levels[x, y] < 0.3)
                 {
-                    colors[x * length + y] = Color.blue;
+                    colors[x * length + y] = new Color32(7, 25, 126, 255);
                 }
-                if (levels[x, y] > 0.4)
+                else if (levels[x, y] < 0.4)
                 {
-                    colors[x * length + y] = Color.green;
+                    colors[x * length + y] = new Color32(7, 25, 188, 255); ;
+                }
+                // Sand
+                else if (levels[x, y] < 0.45)
+                {
+                    colors[x * length + y] = new Color32(191, 192, 100, 255); 
+                }
+                // Ground
+                else if (levels[x, y] < 0.5)
+                {
+                    colors[x * length + y] = new Color32(52, 177, 34, 255);
+                }
+                else if (levels[x, y] < 0.55)
+                {
+                    colors[x * length + y] = new Color32(52, 106, 34, 255);
+                }
+                else if (levels[x, y] < 0.65)
+                {
+                    colors[x * length + y] = new Color32(106, 68, 34, 255);
+                }
+                else if (levels[x, y] < 0.75)
+                {
+                    colors[x * length + y] = new Color32(91, 50, 25, 255);
+                }
+                else if (levels[x, y] > 0.75)
+                {
+                    colors[x * length + y] = Color.white;
                 }
             }
         }
@@ -46,7 +74,19 @@ public class MapDisplay : MonoBehaviour
         texture2D.SetPixels(colors);
         texture2D.Apply();
 
-        textureRender.sharedMaterial.mainTexture = texture2D;
-        textureRender.transform.localScale = new Vector3(width, 1, length);
+        if (meshRender)
+        {
+            meshRenderer.sharedMaterial.mainTexture = texture2D;
+        }
+        else
+        {
+            textureRender.sharedMaterial.mainTexture = texture2D;
+            textureRender.transform.localScale = new Vector3(width, 1, length);
+        }
+    }
+
+    public void DrawMesh(MeshData meshData)
+    {
+        meshFilter.sharedMesh = meshData.CreateMesh();
     }
 }
