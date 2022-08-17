@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
-    public int mapSizeWL = 241;
+    public const int mapSizeWL = 241;
     [Range(1, 6)]
     public int levelOfDetail;
     public float noiseScale;

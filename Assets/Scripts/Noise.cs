@@ -108,8 +108,8 @@ public static class Noise
                 // Octaves to create different perlin noise maps
                 for(int i = 0; i < octaves; i++)
                 {
-                    float sampleX = (x - halfWidth) / scale * frequency + octaveOffset[i].x;
-                    float sampleY = (y - halfLength) / scale * frequency + octaveOffset[i].y;
+                    float sampleX = (x - halfWidth) / scale * frequency + octaveOffset[i].x * frequency;
+                    float sampleY = (y - halfLength) / scale * frequency + octaveOffset[i].y * frequency;
 
                     float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
                     // perlinValueNoLimit collects all the values from different perlin noise maps
