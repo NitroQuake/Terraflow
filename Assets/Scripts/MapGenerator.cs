@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Threading;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -20,15 +22,93 @@ public class MapGenerator : MonoBehaviour
     public AnimationCurve meshCurve;
 
     public bool autoUpdate;
+    public Queue<MapDataAndMethod<MapData>> mapDataAndMethodQueue = new Queue<MapDataAndMethod<MapData>>();
+    public Queue<MeshDataAndMethod<MeshData>> meshDataAndMethodQueue = new Queue<MeshDataAndMethod<MeshData>>();
 
-    //Generates perlin noise map
-    public void GenerateMap()
+    public void drawMesh()
+    {
+        // stores value in mapData
+        MapData mapData = GenerateMapData();
+
+        MapDisplay mapDisplay = GetComponent<MapDisplay>();
+        mapDisplay.BiomeLevel(mapData.noiseMap);
+        mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, multipliar, meshCurve, levelOfDetail));
+    }
+
+    //Generates perlin noise map and saves it in MapData
+    public MapData GenerateMapData()
     {
         float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapSizeWL, mapSizeWL, seed, noiseScale, amplitude, octaves, persistance, lacunarity, offset, power);
 
-        MapDisplay mapDisplay = GetComponent<MapDisplay>();
-        mapDisplay.BiomeLevel(mapGen);
-        mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapGen, multipliar, meshCurve, levelOfDetail));
+        return new MapData(mapGen);
+    }
+
+    // Starts new thread in AddMethodToQueue
+    public void StartThreadMapData(Action<MapData> method)
+    {
+        // The method where the thread starts
+        ThreadStart mapN = delegate
+        {
+            AddMethodToQueue(method);
+        };
+        new Thread(mapN).Start();
+    }
+
+    public void StartThreadMeshData(float[,] noiseMap, Action<MeshData> method)
+    {
+        ThreadStart meshDataThread = delegate
+        {
+            AddMethodToQueueMesh(noiseMap, method);
+        };
+
+        new Thread(meshDataThread).Start();
+    }
+
+    // Adds OnMapDataRecieved and mapData to queue
+    public void AddMethodToQueue(Action<MapData> method)
+    {
+        // Add method
+        MapData mapData = GenerateMapData();
+        // Add method to list
+        lock (mapDataAndMethodQueue)
+        { 
+            mapDataAndMethodQueue.Enqueue(new MapDataAndMethod<MapData>(method, mapData));
+        }
+    }
+
+    public void AddMethodToQueueMesh(float[,] noiseMap, Action<MeshData> method)
+    {
+        MeshData meshData = MeshGenerator.GenerateTerrainMesh(noiseMap, multipliar, meshCurve, levelOfDetail);
+        lock (meshDataAndMethodQueue)
+        {
+            meshDataAndMethodQueue.Enqueue(new MeshDataAndMethod<MeshData>(method, meshData));
+        }
+    }
+
+    // Goes back to main thread to execute OnMapDataRecieved 
+    private void Update()
+    {
+        // remove it from the queue
+        if(mapDataAndMethodQueue.Count > 0)
+        {
+            for(int i = 0; i < mapDataAndMethodQueue.Count; i++)
+            {
+                // Gets the oldest OnMapDataRecieved method and parameter from the script
+                MapDataAndMethod<MapData> values = mapDataAndMethodQueue.Dequeue();
+                // Calls OnMapDataRecieved function in the endless terrain script
+                values.callOnMapDataRecieved(values.parameter);
+            }
+        }
+        // Adds the method
+
+        if(meshDataAndMethodQueue.Count >= 1)
+        {
+            for (int i = 0; i < meshDataAndMethodQueue.Count; i++)
+            {
+                MeshDataAndMethod<MeshData> method = meshDataAndMethodQueue.Dequeue();
+                method.method(method.parameter);
+            }
+        }
     }
 
     void OnValidate()
@@ -45,5 +125,40 @@ public class MapGenerator : MonoBehaviour
         {
             power = 1;
         }
+    }
+}
+
+// Holds unchangeable data
+public struct MapData
+{
+    public readonly float[,] noiseMap;
+
+    public MapData(float[,] noiseMap)
+    {
+        this.noiseMap = noiseMap;
+    }
+}
+
+public struct MapDataAndMethod<noiseMap>
+{
+    public readonly Action<noiseMap> callOnMapDataRecieved;
+    public readonly noiseMap parameter;
+
+    public MapDataAndMethod(Action<noiseMap> callOnMapDataRecieved, noiseMap parameter)
+    {
+        this.callOnMapDataRecieved = callOnMapDataRecieved;
+        this.parameter = parameter;
+    }
+}
+
+public struct MeshDataAndMethod<param>
+{
+    public readonly Action<param> method;
+    public readonly param parameter;
+
+    public MeshDataAndMethod(Action<param> method, param parameter)
+    {
+        this.method = method;
+        this.parameter = parameter;
     }
 }

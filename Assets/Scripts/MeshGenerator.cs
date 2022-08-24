@@ -6,6 +6,9 @@ public static class MeshGenerator
 {
     public static MeshData GenerateTerrainMesh(float[,] noiseMap, float multipliar, AnimationCurve meshCurve, int levelOfDetail)
     {
+        // Creates own mesh curve for each thread
+        AnimationCurve _meshCurve = new AnimationCurve(meshCurve.keys);
+
         int width = noiseMap.GetLength(0);
         int length = noiseMap.GetLength(1);
         //Values to center the mesh
@@ -27,7 +30,7 @@ public static class MeshGenerator
             {
                 // Creates vertices
                 // meshCurve.Evaluate returns a y value from the horizontal axis or x which in this case is noiseMap[x, y] 
-                meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, meshCurve.Evaluate(noiseMap[x, y]) * multipliar, topLeftZ - y);
+                meshData.vertices[vertexIndex] = new Vector3(topLeftX + x, _meshCurve.Evaluate(noiseMap[x, y]) * multipliar, topLeftZ - y);
                 // Creates a uv map where 0,0 represents the bottom left corner of the texture while 1,1 represents the top right corner of the texture
                 meshData.uvs[vertexIndex] = new Vector2(y / (float)length, x / (float)width);
 
