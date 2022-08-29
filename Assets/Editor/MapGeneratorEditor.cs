@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(MapGenerator))]
 public class MapGeneratorEditor : Editor
@@ -13,7 +14,7 @@ public class MapGeneratorEditor : Editor
         {
             if (mapGen.autoUpdate)
             {
-                mapGen.GenerateMapData();
+                mapGen.GenerateMapData(Vector3.one);
             }
         }
     }

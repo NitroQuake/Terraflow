@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class Noise
 {
-
+    //
     //Sets a perlin noise map in an array using perlinValues
     public static float[,] GenerateNoiseMap(int width, int length, int seed, float scale, int octaves, float persistance, float lacunarity, Vector2 offset)
     {
@@ -74,7 +74,7 @@ public static class Noise
         return noiseMap;
     }
 
-    public static float[,] GenerateNoiseMapMyVersion(int width, int length, int seed, float scale, float amplitude, int octaves, float persistance, float lacunarity, Vector2 offset, float power)
+    public static float[,] GenerateNoiseMapMyVersion(int width, int length, int seed, float scale, float amplitude, int octaves, float persistance, float lacunarity, Vector2 offset, float power, Vector3 terrainOffset)
     {
         System.Random prng = new System.Random(seed);
         Vector2[] octaveOffset = new Vector2[octaves];
@@ -85,8 +85,8 @@ public static class Noise
         // Generates a seed
         for (int i = 0; i < octaves; i++)
         {
-            float offsetX = prng.Next(-100000, 100000) + offset.x;
-            float offsetY = prng.Next(-100000, 100000) + offset.y;
+            float offsetX = prng.Next(-100000, 100000) + offset.x + terrainOffset.x;
+            float offsetY = prng.Next(-100000, 100000) + offset.y + terrainOffset.z;
             octaveOffset[i] = new Vector2(offsetX, offsetY);
         }
 

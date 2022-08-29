@@ -28,7 +28,7 @@ public class MapGenerator : MonoBehaviour
     public void drawMesh()
     {
         // stores value in mapData
-        MapData mapData = GenerateMapData();
+        MapData mapData = GenerateMapData(Vector3.one);
 
         MapDisplay mapDisplay = GetComponent<MapDisplay>();
         mapDisplay.BiomeLevel(mapData.noiseMap);
@@ -36,39 +36,41 @@ public class MapGenerator : MonoBehaviour
     }
 
     //Generates perlin noise map and saves it in MapData
-    public MapData GenerateMapData()
+    public MapData GenerateMapData(Vector3 terrainoffset)
     {
-        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapSizeWL, mapSizeWL, seed, noiseScale, amplitude, octaves, persistance, lacunarity, offset, power);
+        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapSizeWL, mapSizeWL, seed, noiseScale, amplitude, octaves, persistance, lacunarity, offset, power, terrainoffset);
 
         return new MapData(mapGen);
     }
 
     // Starts new thread in AddMethodToQueue
-    public void StartThreadMapData(Action<MapData> method)
+    public void StartThreadMapData(Action<MapData> method, Vector3 terrainOffset)
     {
         // The method where the thread starts
-        ThreadStart mapN = delegate
+        ThreadStart mapN = delegate 
         {
-            AddMethodToQueue(method);
+            AddMethodToQueue(method, terrainOffset);
         };
+
         new Thread(mapN).Start();
     }
 
-    public void StartThreadMeshData(float[,] noiseMap, Action<MeshData> method)
+    public void StartThreadMeshData(float[,] noiseMap, Action<MeshData> method, int LOD)
     {
         ThreadStart meshDataThread = delegate
         {
-            AddMethodToQueueMesh(noiseMap, method);
+            AddMethodToQueueMesh(noiseMap, method, LOD);
         };
 
         new Thread(meshDataThread).Start();
     }
 
     // Adds OnMapDataRecieved and mapData to queue
-    public void AddMethodToQueue(Action<MapData> method)
+    public void AddMethodToQueue(Action<MapData> method, Vector3 terrainOffset)
     {
         // Add method
-        MapData mapData = GenerateMapData();
+        MapData mapData = GenerateMapData(terrainOffset);
+
         // Add method to list
         lock (mapDataAndMethodQueue)
         { 
@@ -76,9 +78,9 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    public void AddMethodToQueueMesh(float[,] noiseMap, Action<MeshData> method)
+    public void AddMethodToQueueMesh(float[,] noiseMap, Action<MeshData> method, int LOD)
     {
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(noiseMap, multipliar, meshCurve, levelOfDetail);
+        MeshData meshData = MeshGenerator.GenerateTerrainMesh(noiseMap, multipliar, meshCurve, LOD);
         lock (meshDataAndMethodQueue)
         {
             meshDataAndMethodQueue.Enqueue(new MeshDataAndMethod<MeshData>(method, meshData));

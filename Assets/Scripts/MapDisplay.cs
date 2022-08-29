@@ -10,7 +10,7 @@ public class MapDisplay : MonoBehaviour
     public bool meshRender;
 
     // Sets color based on values in the perlin noise map
-    public void BiomeLevel(float[,] levels)
+    public Texture2D BiomeLevel(float[,] levels)
     {
         int width = levels.GetLength(0);
         int length = levels.GetLength(1);
@@ -59,9 +59,19 @@ public class MapDisplay : MonoBehaviour
                 }
             }
         }
-        DrawNoiseMap(colors, width, length);
+        Texture2D texture2D = new Texture2D(width, length);
+
+        //removes repeated color border outline of the texture
+        texture2D.filterMode = FilterMode.Point;
+        texture2D.wrapMode = TextureWrapMode.Clamp;
+
+        texture2D.SetPixels(colors);
+        texture2D.Apply();
+
+        return texture2D;
     }
 
+    //
     // Creates and sets texture
     public void DrawNoiseMap(Color[] colors, int width, int length)
     {
