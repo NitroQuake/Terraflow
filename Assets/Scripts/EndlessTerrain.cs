@@ -14,7 +14,7 @@ public class EndlessTerrain : MonoBehaviour
     int chunkSize;
     public int chunkVisibleInViewDistance;
     Dictionary<Vector2, TerrainChunk> chunkList = new Dictionary<Vector2, TerrainChunk>();
-    List<TerrainChunk> chunksVisible = new List<TerrainChunk>();
+    static List<TerrainChunk> chunksVisible = new List<TerrainChunk>();
 
     public static MapGenerator mapGenerator;
     private Vector2 oldViewerPosition = new Vector2(0, 0);
@@ -43,11 +43,10 @@ public class EndlessTerrain : MonoBehaviour
 
     private void LoadChunks()
     {
-
         // Checks if chunk is visible again as the player may move out where it can't update terrain chunks given it can only check along chunk distance from player
         for  (int i = 0; i < chunksVisible.Count; i++)
         {
-            chunksVisible[i].UpdateTerrainChunk();
+            chunksVisible[i].HideChunk();
         }
         chunksVisible.Clear();
 
@@ -68,8 +67,6 @@ public class EndlessTerrain : MonoBehaviour
                     // Checks if chunk is visible along chunk distance
                     chunkList[ChunkOnDistance].UpdateTerrainChunk();
                     chunkList[ChunkOnDistance].CheckLOD(6);
-
-                    chunksVisible.Add(chunkList[ChunkOnDistance]);
                 }
                 // Create new chunk
                 else
@@ -96,6 +93,7 @@ public class EndlessTerrain : MonoBehaviour
         int levelOfDetail = 1;
         float playerDstFromChunkBounds;
         bool mapDataRecieved;
+        public bool isVisible;
 
         // Creates and positions terrain chunk
         public TerrainChunk(Vector2 coord, int size, Transform parent, Material mapMaterial)
@@ -122,7 +120,7 @@ public class EndlessTerrain : MonoBehaviour
         private void OnMapDataRecieved(MapData mapData)
         {
             mapDataSaved = mapData;
-            Texture2D texture = mapDisplay.BiomeLevel(mapData.noiseMap);
+            Texture2D texture = mapDisplay.BiomeLevel(mapData.noiseMap, mapData.moistureMap);
             meshRenderer.material.mainTexture = texture;
             for (int i = 6; i > 0; i--)
             {
@@ -147,8 +145,18 @@ public class EndlessTerrain : MonoBehaviour
             // Gets distance from bounding box from player position and if it is less than max chunk distance show chunk
             playerDstFromChunkBounds = Mathf.Sqrt(bounds.SqrDistance(playerPosition));
 
-            bool isVisible = playerDstFromChunkBounds <= maxChunkDistance;
+            isVisible = playerDstFromChunkBounds <= maxChunkDistance;
             chunk.SetActive(isVisible);
+
+            if (isVisible)
+            {
+                chunksVisible.Add(this);
+            }
+        }
+
+        public void HideChunk()
+        {
+            chunk.SetActive(false);
         }
 
         public void CheckLOD(int performanceLOD)

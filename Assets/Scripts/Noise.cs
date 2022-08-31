@@ -74,7 +74,7 @@ public static class Noise
         return noiseMap;
     }
 
-    public static float[,] GenerateNoiseMapMyVersion(int width, int length, int seed, float scale, float amplitude, int octaves, float persistance, float lacunarity, Vector2 offset, float power, Vector3 terrainOffset)
+    public static float[,] GenerateNoiseMapMyVersion(int width, int length, int seed, float scale, float amplitude, int octaves, float persistance, float lacunarity, Vector3 offset, float power)
     {
         System.Random prng = new System.Random(seed);
         Vector2[] octaveOffset = new Vector2[octaves];
@@ -85,8 +85,8 @@ public static class Noise
         // Generates a seed
         for (int i = 0; i < octaves; i++)
         {
-            float offsetX = prng.Next(-100000, 100000) + offset.x + terrainOffset.x;
-            float offsetY = prng.Next(-100000, 100000) + offset.y + terrainOffset.z;
+            float offsetX = prng.Next(-100000, 100000) + offset.x;
+            float offsetY = prng.Next(-100000, 100000) - offset.z;
             octaveOffset[i] = new Vector2(offsetX, offsetY);
         }
 
@@ -108,8 +108,8 @@ public static class Noise
                 // Octaves to create different perlin noise maps
                 for(int i = 0; i < octaves; i++)
                 {
-                    float sampleX = (x - halfWidth) / scale * frequency + octaveOffset[i].x * frequency;
-                    float sampleY = (y - halfLength) / scale * frequency + octaveOffset[i].y * frequency;
+                    float sampleX = (x - halfWidth + octaveOffset[i].x) / scale * frequency;
+                    float sampleY = (y - halfLength + octaveOffset[i].y) / scale * frequency;
 
                     float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
                     // perlinValueNoLimit collects all the values from different perlin noise maps

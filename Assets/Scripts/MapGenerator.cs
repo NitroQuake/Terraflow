@@ -31,16 +31,18 @@ public class MapGenerator : MonoBehaviour
         MapData mapData = GenerateMapData(Vector3.one);
 
         MapDisplay mapDisplay = GetComponent<MapDisplay>();
-        mapDisplay.BiomeLevel(mapData.noiseMap);
+        mapDisplay.BiomeLevel(mapData.noiseMap, mapData.moistureMap);
         mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, multipliar, meshCurve, levelOfDetail));
     }
 
     //Generates perlin noise map and saves it in MapData
     public MapData GenerateMapData(Vector3 terrainoffset)
     {
-        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapSizeWL, mapSizeWL, seed, noiseScale, amplitude, octaves, persistance, lacunarity, offset, power, terrainoffset);
+        float[,] mapGen = Noise.GenerateNoiseMapMyVersion(mapSizeWL, mapSizeWL, seed, noiseScale, amplitude, octaves, persistance, lacunarity, terrainoffset, power);
 
-        return new MapData(mapGen);
+        float[,] moistureGen = Noise.GenerateNoiseMapMyVersion(mapSizeWL, mapSizeWL, seed, noiseScale + 75, amplitude, octaves + 1, persistance, lacunarity, terrainoffset + Vector3.one * 100, power);
+
+        return new MapData(mapGen, moistureGen);
     }
 
     // Starts new thread in AddMethodToQueue
@@ -134,10 +136,12 @@ public class MapGenerator : MonoBehaviour
 public struct MapData
 {
     public readonly float[,] noiseMap;
+    public readonly float[,] moistureMap;
 
-    public MapData(float[,] noiseMap)
+    public MapData(float[,] noiseMap, float[,] moistureMap)
     {
         this.noiseMap = noiseMap;
+        this.moistureMap = moistureMap;
     }
 }
 
