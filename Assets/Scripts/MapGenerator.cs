@@ -20,6 +20,8 @@ public class MapGenerator : MonoBehaviour
     public float power;
     public float multipliar;
     public AnimationCurve meshCurve;
+    public Gradient normalGradient;
+    public Gradient redGradient;
 
     public bool autoUpdate;
     public Queue<MapDataAndMethod<MapData>> mapDataAndMethodQueue = new Queue<MapDataAndMethod<MapData>>();
@@ -32,7 +34,7 @@ public class MapGenerator : MonoBehaviour
 
         MapDisplay mapDisplay = GetComponent<MapDisplay>();
         mapDisplay.BiomeLevel(mapData.noiseMap, mapData.moistureMap);
-        mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData.noiseMap, multipliar, meshCurve, levelOfDetail));
+        mapDisplay.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData, multipliar, meshCurve, levelOfDetail, normalGradient, redGradient));
     }
 
     //Generates perlin noise map and saves it in MapData
@@ -57,11 +59,11 @@ public class MapGenerator : MonoBehaviour
         new Thread(mapN).Start();
     }
 
-    public void StartThreadMeshData(float[,] noiseMap, Action<MeshData> method, int LOD)
+    public void StartThreadMeshData(MapData mapData, Action<MeshData> method, int LOD)
     {
         ThreadStart meshDataThread = delegate
         {
-            AddMethodToQueueMesh(noiseMap, method, LOD);
+            AddMethodToQueueMesh(mapData, method, LOD);
         };
 
         new Thread(meshDataThread).Start();
@@ -80,9 +82,9 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    public void AddMethodToQueueMesh(float[,] noiseMap, Action<MeshData> method, int LOD)
+    public void AddMethodToQueueMesh(MapData mapData, Action<MeshData> method, int LOD)
     {
-        MeshData meshData = MeshGenerator.GenerateTerrainMesh(noiseMap, multipliar, meshCurve, LOD);
+        MeshData meshData = MeshGenerator.GenerateTerrainMesh(mapData, multipliar, meshCurve, LOD, normalGradient, redGradient);
         lock (meshDataAndMethodQueue)
         {
             meshDataAndMethodQueue.Enqueue(new MeshDataAndMethod<MeshData>(method, meshData));

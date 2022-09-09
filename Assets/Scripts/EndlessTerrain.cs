@@ -127,7 +127,7 @@ public class EndlessTerrain : MonoBehaviour
                 if (playerDstFromChunkBounds <= maxChunkDistance / i)
                 {
                     levelOfDetail = 6 + 1 - i;
-                    mapGenerator.StartThreadMeshData(mapData.noiseMap, OnMeshDataRecieved, levelOfDetail);
+                    mapGenerator.StartThreadMeshData(mapData, OnMeshDataRecieved, levelOfDetail);
                     break;
                 }
             }
@@ -168,7 +168,7 @@ public class EndlessTerrain : MonoBehaviour
                     if (playerDstFromChunkBounds <= maxChunkDistance / i)
                     {
                         levelOfDetail = performanceLOD + 1 - i;
-                        mapGenerator.StartThreadMeshData(mapDataSaved.noiseMap, OnMeshDataRecieved, levelOfDetail);
+                        mapGenerator.StartThreadMeshData(mapDataSaved, OnMeshDataRecieved, levelOfDetail);
                         break;
                     }
                 }
